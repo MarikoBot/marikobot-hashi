@@ -1,7 +1,13 @@
-import { connect, ConnectOptions } from 'mongoose';
+import { connect, ConnectOptions, Model, SchemaDefinition } from 'mongoose';
 import { BaseClient, DataMap, DataMapsObject, TypedDataMapStored } from './';
-import { Validators, InstanceValidator, InstanceValidatorReturner } from '../decorators';
-import { FileManager, HashiClient, SuperModel } from '../root/';
+import {
+  InstanceInjector,
+  InstanceValidator,
+  InstanceValidatorReturner,
+  SuperModelInjectorTarget,
+  Validators,
+} from '../decorators';
+import { Client, SuperModel } from '../root';
 
 /**
  * The class who manages the database of the project.
@@ -32,9 +38,15 @@ export class DatabaseManager extends BaseClient {
   public dataMaps: DataMapsObject = {};
 
   /**
+   * The list of dataMaps constructor waiting for being initialized.
+   */
+  @((<InstanceValidatorReturner>Validators.ArrayValidator.OnlyConstructorOf)(SuperModel))
+  public sleepingSuperModels: SuperModel[] = [];
+
+  /**
    * @param client The client instance.
    */
-  constructor(client: HashiClient) {
+  constructor(client: Client) {
     super(client);
   }
 
@@ -46,34 +58,6 @@ export class DatabaseManager extends BaseClient {
     const dataMap: DataMap<TypedDataMapStored> = new DataMap<TypedDataMapStored>(this.client, name);
     this.dataMaps[name] = dataMap;
     return dataMap;
-  }
-
-  /**
-   * Synchronize the datamaps created by the coder into their own repository.
-   * Synchronize this project files too.
-   * @returns The class instance.
-   */
-  public loadDataMaps(): DatabaseManager {
-    const superModels: [string, typeof SuperModel][] = this.client.fileManager.read<typeof SuperModel>(
-      `${FileManager.ABSPATH}${this.client.dataMapsDir}`,
-      `${FileManager.RMPATH}${this.client.dataMapsDir}`,
-      {
-        absPathStrSelf: `./lib/${this.client.dataMapsDir}`,
-        rmPathStrSelf: `../${this.client.dataMapsDir}`,
-      },
-    );
-
-    let superModel: SuperModel;
-    let dataMap: DataMap<any, any>;
-
-    let i: number = -1;
-    while (++i < superModels.length) {
-      superModel = superModels[i][1][superModels[i][0]];
-
-      dataMap = this.createDataMap(superModel.name);
-      dataMap.superModel = superModel;
-    }
-    return this;
   }
 
   /**
@@ -89,5 +73,34 @@ export class DatabaseManager extends BaseClient {
     if (connectOptions) this.connectOptions = connectOptions;
 
     await connect(this.connectionURI, this.connectOptions);
+  }
+
+  // noinspection JSUnusedGlobalSymbols
+  /**
+   * The decorator to inject metadata into the constructor of an extension of SuperModel.
+   * @param name The name of the super-SuperModel.
+   * @returns The decorator.
+   */
+  public inject(name: string): InstanceInjector {
+    const instance: DatabaseManager = this;
+    return function (target: SuperModelInjectorTarget): void {
+      instance.client.logger.info(`Bound model: ${name}`);
+      target.prototype.name = name;
+      instance.dataMaps[name] = new DataMap<TypedDataMapStored>(instance.client, name);
+      instance.createDataMap(name);
+      instance.dataMaps[name].definition = new target(name);
+    };
+  }
+
+  /**
+   * Get a table and its model.
+   * @param name The name of the table.
+   * @returns The model of the table.
+   */
+  public get(name: string): Model<SchemaDefinition & Document & any> {
+    const table: DataMap<any> = this.dataMaps[name];
+    if (!table) return null;
+
+    return table.definition.model;
   }
 }

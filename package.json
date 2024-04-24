@@ -1,7 +1,7 @@
 {
   "name": "marikobot-hashi",
-  "version": "2.0.1-alpha.2",
-  "description": "A cool discord.js wrapper to create bots in a simpler way.",
+  "version": "4.0.0",
+  "description": "A discord.js wrapper to create bots in a simpler way. Used for MarikoBot.",
   "keywords": [
     "discord",
     "bot",
@@ -14,20 +14,25 @@
     "url": "https://github.com/MarikoBot/marikobot-hashi/issues"
   },
   "license": "MIT",
-  "author": {
-    "name": "Elouann H.",
-    "email": "elouannpro@proton.me"
-  },
+  "author": "Elouann H. (https://github.com/elouannh)",
   "contributors": [
+    "Elouann H. (https://github.com/elouannh)"
+  ],
+  "funding": [
     {
-      "name": "Elouann H.",
-      "email": "elouannpro@proton.me"
+      "type": "stripe",
+      "url": "https://dashboard.stripe.com/products/prod_PQFWKjrDZPWTOl"
+    },
+    {
+      "type": "github",
+      "url": "https://github.com/sponsor/MarikoBot"
     }
   ],
   "files": [
     "lib",
     "package.json",
     "README.md",
+    "LICENSE",
     "types"
   ],
   "main": "lib/index.js",
@@ -44,17 +49,14 @@
     "prettier": "prettier -w src",
     "lint": "tslint --config tslint.json --project tsconfig.json 'src/**/*.ts' > linter-output.txt",
     "clean": "npm run prettier && npm run lint",
-    "save": "git add ./",
-    "build": "npm run run-builder && npm run prettier && tsc && npm run save",
-    "prepublish": "npm run build && git commit -m \"[AUTO] dev build\"",
-    "test": "npm run build && node lab/lab.test.js",
+    "build": "npm run clean && npm run run-builder && tsc && git add .",
+    "prepublish": "npm run build && git commit -m \"[BUILD] Automatic build\"",
     "test-ts": "ts-node lab/lab.test.ts",
-    "dev-patch": "npm run prepublish && npm run publish-patch",
+    "post-version-push": "git push && npm publish && git push --tags",
     "publish-patch": "npm version patch && npm run post-version-push",
     "publish-minor": "npm version minor && npm run post-version-push",
     "publish-major": "npm version major && npm run post-version-push",
-    "publish-alpha": "npm version prerelease --preid=alpha && npm run post-version-push",
-    "post-version-push": "git push && npm publish && git push --tags"
+    "publish-prerel": "npm version prerelease --preid=prerelease && npm run post-version-push"
   },
   "dependencies": {
     "chalk": "^4.1.2",

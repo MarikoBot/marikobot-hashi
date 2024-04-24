@@ -8,9 +8,8 @@ export const FunctionValidator: { readonly [validatorName: string]: InstanceVali
    * Verify if the value is a function.
    * @param target The class instance.
    * @param key The attribute to set.
-   * @constructor
    */
-  Matches: (target: Object, key: string): void => {
+  Matches: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {

@@ -8,9 +8,8 @@ export const NumberValidator: { readonly [validatorName: string]: InstanceValida
    * Verify if the value is a number.
    * @param target The class instance.
    * @param key The attribute to set.
-   * @constructor
    */
-  Matches: (target: Object, key: string): void => {
+  Matches: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {

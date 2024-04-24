@@ -8,10 +8,9 @@ export const ArrayValidator: { readonly [validatorName: string]: InstanceValidat
   /**
    * Verify if an array is composed only of a constructible class object.
    * @param constructible The class the value shall inherit.
-   * @constructor
    */
   OnlyConstructorOf: (constructible: Constructible): InstanceValidator => {
-    return function (target: Object, key: string): void {
+    return function (target: object, key: string): void {
       let value: any;
 
       const setter = (newValue: any): void => {
@@ -38,9 +37,8 @@ export const ArrayValidator: { readonly [validatorName: string]: InstanceValidat
    * Verify if an array is composed only of objects.
    * @param target The class instance.
    * @param key The attribute to set.
-   * @constructor
    */
-  OnlyObjects: (target: Object, key: string): void => {
+  OnlyObjects: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {
@@ -60,9 +58,8 @@ export const ArrayValidator: { readonly [validatorName: string]: InstanceValidat
    * Verify if an array is composed only of enumeration values.
    * @param target The class instance.
    * @param key The attribute to set.
-   * @constructor
    */
-  OnlyEnumValues: (target: Object, key: string): void => {
+  OnlyEnumValues: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {
@@ -85,9 +82,8 @@ export const ArrayValidator: { readonly [validatorName: string]: InstanceValidat
    * Verify if an array is composed only of HashiErrors initials classes instances.
    * @param target The class instance.
    * @param key The attribute to set.
-   * @constructor
    */
-  OnlyHashiErrors: (target: Object, key: string): void => {
+  OnlyHashiErrors: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {
@@ -115,9 +111,8 @@ export const ArrayValidator: { readonly [validatorName: string]: InstanceValidat
    * Verify if an array is composed only of users.
    * @param target The class instance.
    * @param key The attribute to set.
-   * @constructor
    */
-  OnlyUsers: (target: Object, key: string): void => {
+  OnlyUsers: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {

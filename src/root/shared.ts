@@ -1,40 +1,65 @@
 import {
-  APIApplicationCommand,
+  APIApplicationCommandOption,
   ChatInputApplicationCommandData,
   ChatInputCommandInteraction,
-  ClientOptions,
+  ClientOptions as DiscordClientOptions,
   DiscordAPIError,
   DiscordjsError,
-  SlashCommandBuilder,
+  LocalizationMap,
 } from 'discord.js';
 import { ConnectOptions } from 'mongoose';
-import { Context } from '../base';
-import {
-  HashiClient,
-  HashiMessageCommand,
-  HashiSlashCommand,
-  HashiSlashSubcommand,
-  HashiSlashSubcommandGroup,
-  SuperModelColumn,
-} from './';
+import { Command, SuperModelColumn } from './';
 
 /**
- * Represents any command constructor.
+ * Prefilled version of the Discord.<APIApplicationCommand>
+ * @link https://discord.com/developers/docs/interactions/application-commands#application-command-object
  */
-export type AnyCommandConstructorType =
-  | typeof HashiMessageCommand
-  | typeof HashiSlashCommand
-  | typeof HashiSlashSubcommand
-  | typeof HashiSlashSubcommandGroup;
-
-/**
- * Represents any command constructor.
- */
-export type AnyCommandConstructor =
-  | HashiMessageCommand
-  | HashiSlashCommand
-  | HashiSlashSubcommand
-  | HashiSlashSubcommandGroup;
+export interface APIApplicationCommandPrefilled {
+  /**
+   * Type of the command
+   */
+  type: 1;
+  /**
+   * 1-32 character name; `CHAT_INPUT` command names must be all lowercase matching `^[-_\p{L}\p{N}\p{sc=Deva}\p{sc=Thai}]{1,32}$`
+   */
+  name: string;
+  /**
+   * Localization dictionary for the name field. Values follow the same restrictions as name
+   */
+  name_localizations?: LocalizationMap | null;
+  /**
+   * 1-100 character description for `CHAT_INPUT` commands, empty string for `USER` and `MESSAGE` commands
+   */
+  description: string;
+  /**
+   * Localization dictionary for the description field. Values follow the same restrictions as description
+   */
+  description_localizations?: LocalizationMap | null;
+  /**
+   * The parameters for the `CHAT_INPUT` command, max 25
+   */
+  options?: APIApplicationCommandOption[];
+  /**
+   * Set of permissions represented as a bitset
+   */
+  default_member_permissions: Permissions | null;
+  /**
+   * Indicates whether the command is available in DMs with the app, only for globally-scoped commands. By default, commands are visible
+   */
+  dm_permission?: boolean;
+  /**
+   * Whether the command is enabled by default when the app is added to a guild
+   *
+   * If missing, this property should be assumed as `true`
+   *
+   * @deprecated Use `dm_permission` and/or `default_member_permissions` instead
+   */
+  default_permission?: boolean;
+  /**
+   * Indicates whether the command is age-restricted, defaults to `false`
+   */
+  nsfw?: boolean;
+}
 
 /**
  * The value that is returned when the command is finished.
@@ -51,91 +76,81 @@ export enum COMMAND_END {
   /**
    * When the command terminates but with some problems that occurred in the process.
    */
-  ISSUED = 1,
+  ISSUED = 2,
 }
 
 /**
  * The command block that includes the command, subcommands and/or subcommand groups.
  */
-export interface CommandBlock {
+export interface CommandGroup {
   /**
    * The command constructor.
    */
-  command: HashiSlashCommand | HashiMessageCommand;
+  command: Command;
   /**
-   * The subcommand group constructor.
+   * The base metadata for the command.
    */
-  subcommandGroup?: HashiSlashSubcommandGroup;
+  metadata: CommandMetadata;
   /**
-   * The subcommand constructor.
+   * The subcommand group metadata.
    */
-  subcommand?: HashiSlashSubcommand;
+  subcommandGroup?: CommandMetadataSubgroup;
+  /**
+   * The subcommand metadata.
+   */
+  subcommand?: CommandMetadataBase;
 }
-
-/**
- * The type that represents an element of CommandBlock.
- */
-export type CommandBlockValue = CommandBlock[keyof CommandBlock];
 
 /**
  * The interface that represents a command metadata.
  */
-export interface CommandMetadata {
-  /**
-   * The client instance.
-   */
-  client: HashiClient;
-  /**
-   * The type of the command.
-   */
-  type: HashiCommandType;
+export interface CommandMetadataBase {
   /**
    * The name of the command.
    */
   id: string;
   /**
-   * The list of errors for the command occurrence.
-   */
-  errors: HashiError[];
-  /**
    * The commands that must be executed before this one.
    * If one of the interfering commands is same-time running, this command will be ignored.
    */
-  interferingCommands: ChatInputApplicationCommandData['name'][];
+  interferingCommands?: ChatInputApplicationCommandData['name'][];
   /**
    * The amount of time before running the command again. Must be between 0 and 300 seconds.
    */
-  coolDown: number;
-  /**
-   * The context of the command.
-   */
-  context: Context;
+  coolDown?: number;
   /**
    * The external data for the command.
    */
-  privileges: CommandPrivileges;
-  /**
-   * The callback function called.
-   */
-  callback: HashiSlashCommandCallbackFunction;
-  /**
-   * The slash command if there is one.
-   */
-  slashCommand: SlashCommandBuilder;
-  /**
-   * The slash command but the hashi builder.
-   */
-  hashiCommand: SlashCommandBuilder;
-  /**
-   * The command data for the hashi slash command.
-   */
-  src?: APIApplicationCommand;
+  privileges?: CommandPrivileges;
 }
 
 /**
- * The keys of the command metadata.
+ * The interface that represents a command metadata.
  */
-export type CommandMetadataKeys = keyof CommandMetadata;
+export interface CommandMetadata extends CommandMetadataBase {
+  /**
+   * The command data for the hashi slash command.
+   */
+  src: APIApplicationCommandPrefilled;
+  /**
+   * The subcommand groups of the command.
+   */
+  subcommandGroups?: CommandMetadataSubgroup[];
+  /**
+   * The subcommands of the command.
+   */
+  subcommands?: CommandMetadataBase[];
+}
+
+/**
+ * The interface that represents a command metadata.
+ */
+export interface CommandMetadataSubgroup extends CommandMetadataBase {
+  /**
+   * The subcommands of the command.
+   */
+  subcommands: CommandMetadata['subcommands'];
+}
 
 /**
  * The privileges for a command (restrictions and prohibition).
@@ -185,7 +200,7 @@ export type CommandPrivilegesKey = keyof CommandPrivileges;
  */
 export type CoolDownsQueueElement = [
   /**
-   The full name of the command (including the subcommands name).
+   * The full name of the command (including the subcommands name).
    */
   string,
   /**
@@ -199,43 +214,17 @@ export type CoolDownsQueueElement = [
 ];
 
 /**
- * A default callback function used when nothing is set.
- * @returns Nothing.
+ * The options for the Client. It extends the ClientOptions from discord.js and implements extra options for the Hashi module.
  */
-export async function defaultEventCallback(): Promise<void> {
-  return void setTimeout((): null => null);
-}
-
-/**
- * The pair of paths based on the environment.
- */
-export type EnvPath = Record<'lab' | 'prod', string>;
-
-/**
- * The type used for defining abstractly the content of a file.
- */
-export type FileContentType = { [dataKey: string]: any };
-
-/**
- * The options for the HashiClient. It extends the ClientOptions from discord.js and implements extra options for the Hashi module.
- */
-export interface HashiClientOptions extends ClientOptions {
+export interface ClientOptions extends DiscordClientOptions {
   /**
    * The name of the project/process you're in.
    */
-  processName: string;
+  projectName: string;
   /**
-   * The commands folder directory.
+   * The Discord channels where the bot can be configured/logged.
    */
-  commandsDir?: string;
-  /**
-   * The events folder directory.
-   */
-  eventsDir?: string;
-  /**
-   * The data maps folder directory.
-   */
-  dataMapsDir?: string;
+  configChannels: ClientChannelsOption;
   /**
    * The mongoose connection information.
    */
@@ -256,40 +245,19 @@ export interface HashiClientOptions extends ClientOptions {
 }
 
 /**
- * The different values of for the HashiCommandType type.
+ * The Discord channels where the bot can be configured/logged.
  */
-export const HashiCommandValues: readonly string[] = ['message', 'slash', 'sub', 'group'] as const;
-
-/**
- * The different types of command.
- */
-export type HashiCommandType = (typeof HashiCommandValues)[number];
+export interface ClientChannelsOption {
+  /**
+   * The channel for the bot status.
+   */
+  status: string;
+}
 
 /**
  * Represents an error.
  */
 export type HashiError = Error | DiscordjsError | DiscordAPIError;
-
-/**
- * The model of a callback function for an event.
- * @param client The client instance.
- * @param args The command args.
- */
-export type HashiEventCallbackFunction = (client: HashiClient, ...args: any[]) => void;
-
-/**
- * Represents the function called back when the command is triggered.
- *
- * @param client The client that instanced the process.
- * @param interaction The associated interaction.
- * @param context The front-end class to manage interactions.
- * @returns COMMAND_END The exit command code.
- */
-export type HashiSlashCommandCallbackFunction = (
-  client: HashiClient,
-  interaction: ChatInputCommandInteraction,
-  context: Context,
-) => Promise<COMMAND_END>;
 
 /**
  * Represents an element in the interfering commands queue.
@@ -307,20 +275,32 @@ export type InterferingQueueElement = [
 ];
 
 /**
- * The interface including parameters for self-research program.
- */
-export interface SelfResearchOptions {
-  /**
-   * The absolute self-path to look.
-   */
-  absPathStrSelf: string;
-  /**
-   * The recursive self-path to look.
-   */
-  rmPathStrSelf: string;
-}
-
-/**
  * A type-structure that represents a column or an object of columns.
  */
-export type StructureColumnOrChild = { [key: string]: SuperModelColumn | StructureColumnOrChild };
+export type StructureColumnOrChild =
+  | { [key: string]: SuperModelColumn<any> | StructureColumnOrChild }
+  | SuperModelColumn<any>;
+
+/**
+ * The bits value for each command privileges key.
+ */
+export const bitRecord: Record<CommandPrivilegesKey, string> = {
+  forbiddenUsers: '0b10000000',
+  uniqueUsers: '0b1000000',
+  forbiddenGuilds: '0b100000',
+  uniqueGuilds: '0b10000',
+  forbiddenRoles: '0b1000',
+  uniqueRoles: '0b100',
+  forbiddenChannels: '0b10',
+  uniqueChannels: '0b1',
+};
+
+/**
+ * The list of mode-colors for logging assets.
+ */
+export const loggerModes = ['error', 'success', 'warning', 'info', 'debug', 'test', 'clean'] as const;
+
+/**
+ * The type that represent a logger mode-color.
+ */
+export type LoggerMode = (typeof loggerModes)[number];

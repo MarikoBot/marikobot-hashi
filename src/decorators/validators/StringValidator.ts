@@ -7,35 +7,11 @@ export const StringValidator: {
   readonly [validatorName: string]: InstanceValidator | ((...args: any[]) => InstanceValidator);
 } = {
   /**
-   * Verify if a string is included into the HashiCommandType type.
-   * @param hashiCommandValues The hashiCommandValues instance.
-   * @constructor
-   */
-  IsHashiCommandType: (hashiCommandValues: readonly string[]): InstanceValidator => {
-    return function (target: Object, key: string): void {
-      let value: any;
-
-      const setter = (newValue: any): void => {
-        if (typeof newValue !== 'string' || !hashiCommandValues.includes(newValue))
-          throw new Error(`The property ${target.constructor.name}.${key} must be a HashiCommandType string.`);
-        value = newValue;
-      };
-
-      Object.defineProperty(target, key, {
-        get: (): typeof value => value,
-        set: setter,
-        enumerable: true,
-        configurable: true,
-      });
-    };
-  },
-  /**
    * Verify if a string is not empty.
    * @param target The class instance.
    * @param key The attribute to set.
-   * @constructor
    */
-  NotEmpty: (target: Object, key: string): void => {
+  NotEmpty: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {
@@ -55,16 +31,15 @@ export const StringValidator: {
    * Verify if a string respects the syntax for an id.
    * @param target The class instance.
    * @param key The attribute to set.
-   * @constructor
    */
-  ValidId: (target: Object, key: string): void => {
+  ValidId: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {
       if (typeof newValue !== 'string' || newValue.match(StringValidatorRegExp.validIdRegExp).join('') !== newValue)
         throw new Error(
           `The property ${target.constructor.name}.${key} must be a valid id string ` +
-            `(${StringValidator.validIdRegExp.toString()}).`,
+            `(${StringValidatorRegExp.validIdRegExp.toString()}).`,
         );
       value = newValue;
     };
@@ -77,39 +52,11 @@ export const StringValidator: {
     });
   },
   /**
-   * Verify if a value is a valid language id.
-   * @param languages The languages record.
-   * @constructor
-   */
-  ValidLanguage: (languages: Record<string, Record<string, string>>): InstanceValidator => {
-    return function (target: Object, key: string): void {
-      let value: any;
-
-      const setter = (newValue: any): void => {
-        if (typeof newValue !== 'string' || !Object.keys(languages).includes(newValue))
-          throw new Error(
-            `The property ${target.constructor.name}.${key} must be a valid language id: ${Object.keys(languages).join(
-              ', ',
-            )}.`,
-          );
-        value = newValue;
-      };
-
-      Object.defineProperty(target, key, {
-        get: (): typeof value => value,
-        set: setter,
-        enumerable: true,
-        configurable: true,
-      });
-    };
-  },
-  /**
    * Verify if a string respects the syntax for a non-formatted string.
    * @param target The class instance.
    * @param key The attribute to set.
-   * @constructor
    */
-  ValidNonFormatted: (target: Object, key: string): void => {
+  ValidNonFormatted: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {
@@ -135,9 +82,8 @@ export const StringValidator: {
    * Verify if a string respects the syntax for a set of primary keys.
    * @param target The class instance.
    * @param key The attribute to set.
-   * @constructor
    */
-  ValidPrimaryKeys: (target: Object, key: string): void => {
+  ValidPrimaryKeys: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {
@@ -163,9 +109,8 @@ export const StringValidator: {
    * Verify if a string respects the syntax for a version.
    * @param target The class instance.
    * @param key The attribute to set.
-   * @constructor
    */
-  ValidVersion: (target: Object, key: string): void => {
+  ValidVersion: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {

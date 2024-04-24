@@ -22,9 +22,10 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { ConnectOptions } from 'mongoose';
-import { DataMapsObject, TypedDataMapStored, BaseClient, DataMap } from './';
-import { HashiClient } from '../root/';
+import { ConnectOptions, Model, SchemaDefinition } from 'mongoose';
+import { BaseClient, DataMap, DataMapsObject, TypedDataMapStored } from './';
+import { InstanceInjector } from '../decorators';
+import { Client, SuperModel } from '../root';
 /**
  * The class who manages the database of the project.
  */
@@ -46,24 +47,34 @@ export declare class DatabaseManager extends BaseClient {
      */
     dataMaps: DataMapsObject;
     /**
+     * The list of dataMaps constructor waiting for being initialized.
+     */
+    sleepingSuperModels: SuperModel[];
+    /**
      * @param client The client instance.
      */
-    constructor(client: HashiClient);
+    constructor(client: Client);
     /**
      * Build and save a data map.
      * @param name The name of the collection.
      */
     createDataMap(name: string): DataMap<TypedDataMapStored>;
     /**
-     * Synchronize the datamaps created by the coder into their own repository.
-     * Synchronize this project files too.
-     * @returns The class instance.
-     */
-    loadDataMaps(): DatabaseManager;
-    /**
      * Connect the database to the mongodb cluster.
      * @param connectionURI The connection URI.
      * @param connectOptions The connection options.
      */
     connect(connectionURI?: string, connectOptions?: ConnectOptions): Promise<void>;
+    /**
+     * The decorator to inject metadata into the constructor of an extension of SuperModel.
+     * @param name The name of the super-SuperModel.
+     * @returns The decorator.
+     */
+    inject(name: string): InstanceInjector;
+    /**
+     * Get a table and its model.
+     * @param name The name of the table.
+     * @returns The model of the table.
+     */
+    get(name: string): Model<SchemaDefinition & Document & any>;
 }

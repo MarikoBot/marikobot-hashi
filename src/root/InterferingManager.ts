@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, Collection, Snowflake } from 'discord.js';
-import { Validators, InstanceValidatorReturner } from '../decorators';
+import { InstanceValidator, InstanceValidatorReturner, Validators } from '../decorators';
 import { InterferingQueueElement } from './';
+import { Context } from '../base';
 
 /**
  * The main class who manages the active cool downs for commands.
@@ -13,9 +14,21 @@ export class InterferingManager {
   public readonly queue: Collection<Snowflake, InterferingQueueElement[]> = new Collection();
 
   /**
-   * The constructor of the interfering manager.
+   * The function that is called when the interfering manager authorization does not pass.
    */
-  constructor() {}
+  @(<InstanceValidator>Validators.FunctionValidator.Matches)
+  public callback: (context: Context, interferingCommands: string[]) => Promise<void> = async (
+    context: Context,
+    interferingCommands: string[],
+  ): Promise<void> => {
+    await context.reply({
+      content: `<:MarikoCross:1191675946353299456> **Error** → interfering commands are already running:\n${interferingCommands.join(
+        '\n',
+      )}`,
+      ephemeral: true,
+    });
+    return void 0;
+  };
 
   /**
    * Register an interfering command when this command is triggered.
@@ -25,11 +38,21 @@ export class InterferingManager {
    * @returns Nothing.
    */
   public registerInterfering(userId: Snowflake, commandName: string, interaction: ChatInputCommandInteraction): void {
-    const currentCoolDowns: InterferingQueueElement[] = this.values(userId);
+    const currentInterfering: InterferingQueueElement[] = this.values(userId);
 
-    currentCoolDowns.push([commandName, interaction]);
+    currentInterfering.push([commandName, interaction]);
 
-    this.queue.set(userId, currentCoolDowns);
+    this.queue.set(userId, currentInterfering);
+  }
+
+  /**
+   * Set the callback function when the interfering manager is triggered on.
+   * @param callback The function to set.
+   * @returns The class instance.
+   */
+  public on(callback: (context: Context, interferingCommands: string[]) => Promise<void>): this {
+    this.callback = callback;
+    return this;
   }
 
   /**
@@ -41,11 +64,11 @@ export class InterferingManager {
   public values(userId: Snowflake, ...commands: string[]): InterferingQueueElement[] {
     const currentInterfering: InterferingQueueElement[] | [] = this.queue.get(userId) || [];
 
-    if (commands.length > 0) {
+    if (commands.length > 0)
       return currentInterfering.filter((queueElement: InterferingQueueElement): boolean =>
         commands.some((cmd: string) => queueElement[0].startsWith(cmd)),
       );
-    }
+
     return currentInterfering;
   }
 
@@ -56,13 +79,13 @@ export class InterferingManager {
    * @param key The value to search for; either the name of the command or the interaction id.
    * @returns Nothing.
    */
-  public removeInterfering(userId: Snowflake, key: string | Snowflake): void {
+  public removeInterfering(userId: Snowflake, key: string): void {
     const currentInterfering: InterferingQueueElement[] = this.values(userId);
 
     this.queue.set(
       userId,
       currentInterfering.filter((queueElement: InterferingQueueElement): boolean => {
-        return queueElement[1].id !== key;
+        return queueElement[0] !== key;
       }),
     );
   }

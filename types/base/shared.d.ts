@@ -22,22 +22,18 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { CommandBlockValue } from '../root';
 import { BaseGuildTextChannel, BaseGuildVoiceChannel, ButtonInteraction, ChatInputCommandInteraction, ThreadChannel, User } from 'discord.js';
 import { DataMap } from './DataMap';
 import { Types } from 'mongoose';
+import { Command } from '../root';
 /**
  * The options for the context constructor.
  */
 export interface ContextOptions {
     /**
-     * The language id of the main user.
-     */
-    languageId?: Language;
-    /**
      * The command associated with the context.
      */
-    command: CommandBlockValue;
+    command: Command;
     /**
      * The users implicated in the context/action.
      */
@@ -74,22 +70,6 @@ export declare enum DATAMAP_INTENTS {
 export type DataMapsObject = {
     [dmName: string]: DataMap<any>;
 };
-/**
- * A language id.
- */
-export type Language = 'fr' | 'en';
-/**
- * The default type for a language translation file.
- */
-export type LanguageContent = Record<string, string>;
-/**
- * The type that represents a language content id.
- */
-export type LanguageContentKey = keyof LanguageContent;
-/**
- * All the language content.
- */
-export declare const Languages: Record<Language, LanguageContent>;
 /**
  * A type that can be stored into a datamap.
  */

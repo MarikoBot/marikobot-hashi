@@ -7,7 +7,7 @@ export declare class DataMapEntry<DataStructure extends TypedDataMapStored> {
     /**
      * The data map.
      */
-    readonly dataMap: DataMap<DataStructure, typeof DataMapEntry>;
+    readonly dataMap: DataMap<DataStructure>;
     /**
      * The data.
      */
@@ -17,5 +17,5 @@ export declare class DataMapEntry<DataStructure extends TypedDataMapStored> {
      * @param dataMap The data map.
      * @param data The data.
      */
-    constructor(dataMap: DataMap<DataStructure, typeof DataMapEntry>, data: DataStructure);
+    constructor(dataMap: DataMap<DataStructure>, data: DataStructure);
 }

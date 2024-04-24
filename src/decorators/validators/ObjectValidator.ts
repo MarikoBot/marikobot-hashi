@@ -8,49 +8,11 @@ export const ObjectValidator: {
   readonly [validatorName: string]: InstanceValidator | ((...args: any[]) => InstanceValidator);
 } = {
   /**
-   * Verify if a value is an CommandBlockValue initial type instance.
-   * @param hashiMessageCommand The first class constructor.
-   * @param hashiSlashCommand The second class constructor.
-   * @param hashiSlashSubcommand The third class constructor.
-   * @param hashiSlashSubcommandGroup The fourth class constructor.
-   */
-  CommandBlockValueInitial: (
-    hashiMessageCommand: Constructable<any>,
-    hashiSlashCommand: Constructable<any>,
-    hashiSlashSubcommand: Constructable<any>,
-    hashiSlashSubcommandGroup: Constructable<any>,
-  ): InstanceValidator => {
-    return function (target: Object, key: string): void {
-      let value: any;
-
-      const setter = (newValue: any): void => {
-        if (
-          typeof newValue !== 'object' ||
-          (!(newValue instanceof hashiMessageCommand) &&
-            !(newValue instanceof hashiSlashCommand) &&
-            !(newValue instanceof hashiSlashSubcommand) &&
-            !(newValue instanceof hashiSlashSubcommandGroup))
-        )
-          throw new Error(
-            `The property ${target.constructor.name}.${key} must be an instance of one of the CommandBlockValue initial type classes.`,
-          );
-        value = newValue;
-      };
-
-      Object.defineProperty(target, key, {
-        get: (): typeof value => value,
-        set: setter,
-        enumerable: true,
-        configurable: true,
-      });
-    };
-  },
-  /**
    * Verify if a value is an ContextChannel initial type instance.
    * @param target The class instance.
    * @param key The attribute to set.
    */
-  ContextChannelInitial: (target: Object, key: string): void => {
+  ContextChannelInitial: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {
@@ -77,9 +39,8 @@ export const ObjectValidator: {
    * Verify if the value is a dataMapDefinition object.
    * @param target The class instance.
    * @param key The attribute to set.
-   * @constructor
    */
-  IsDataMapDefinition: (target: Object, key: string): void => {
+  IsDataMapDefinition: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {
@@ -106,7 +67,7 @@ export const ObjectValidator: {
    * @param constructable The class the value shall inherit.
    */
   IsInstanceOf: (constructable: Constructable<any>): InstanceValidator => {
-    return function (target: Object, key: string): void {
+    return function (target: object, key: string): void {
       let value: any;
 
       const setter = (newValue: any): void => {
@@ -130,7 +91,7 @@ export const ObjectValidator: {
    * @param dataMap The dataMap constructor.
    */
   KeyDataMapPair: (dataMap: Constructable<any>): InstanceValidator => {
-    return function (target: Object, key: string): void {
+    return function (target: object, key: string): void {
       let value: any;
 
       const setter = (newValue: any): void => {
@@ -157,7 +118,7 @@ export const ObjectValidator: {
    * @param target The class instance.
    * @param key The attribute to set.
    */
-  KeyFunctionPair: (target: Object, key: string): void => {
+  KeyFunctionPair: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {
@@ -183,7 +144,7 @@ export const ObjectValidator: {
    * @param target The class instance.
    * @param key The attribute to set.
    */
-  KeyObjectPair: (target: Object, key: string): void => {
+  KeyObjectPair: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {
@@ -205,11 +166,32 @@ export const ObjectValidator: {
     });
   },
   /**
+   * Verify if the value is an object string-string.
+   * @param target The class instance.
+   * @param key The attribute to set.
+   */
+  KeyStringPair: (target: object, key: string): void => {
+    let value: any;
+
+    const setter = (newValue: any): void => {
+      if (typeof newValue !== 'object' || typeof newValue !== 'string')
+        throw new Error(`The property ${target.constructor.name}.${key} must be an object string-string.`);
+      value = newValue;
+    };
+
+    Object.defineProperty(target, key, {
+      get: (): typeof value => value,
+      set: setter,
+      enumerable: true,
+      configurable: true,
+    });
+  },
+  /**
    * Verify if the value is an object string-string[].
    * @param target The class instance.
    * @param key The attribute to set.
    */
-  KeyStringArrayPair: (target: Object, key: string): void => {
+  KeyStringArrayPair: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {
@@ -219,7 +201,7 @@ export const ObjectValidator: {
           ([_key, _value]: [string, unknown]): boolean =>
             typeof _key === 'string' &&
             typeof _value === 'object' &&
-            (<Array<any>>_value).every((v: any): boolean => typeof v === 'string'),
+            (<any[]>_value).every((v: any): boolean => typeof v === 'string'),
         )
       )
         throw new Error(`The property ${target.constructor.name}.${key} must be an object string-string[].`);
@@ -238,7 +220,7 @@ export const ObjectValidator: {
    * @param superModelColumn The superModelColumn constructor.
    */
   KeySuperModelColumnPair: (superModelColumn: Constructable<any>): InstanceValidator => {
-    return function (target: Object, key: string): void {
+    return function (target: object, key: string): void {
       let value: any;
 
       const setter = (newValue: any): void => {
@@ -267,7 +249,7 @@ export const ObjectValidator: {
    * @param placeholder The placeholder constructor.
    */
   KindOfInstance: (arg: Constructable<any>, placeholder: Constructable<any>): InstanceValidator => {
-    return function (target: Object, key: string): void {
+    return function (target: object, key: string): void {
       let value: any;
 
       const setter = (newValue: any): void => {
@@ -297,7 +279,7 @@ export const ObjectValidator: {
    * @param target The class instance.
    * @param key The attribute to set.
    */
-  Matches: (target: Object, key: string): void => {
+  Matches: (target: object, key: string): void => {
     let value: any;
 
     const setter = (newValue: any): void => {

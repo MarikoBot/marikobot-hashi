@@ -4,13 +4,13 @@
     "tslint-config-prettier"
   ],
   "rules": {
-    "semi": "off",
-    "@typescript-eslint/semi": "error",
+    "semicolon": [true, "always"],
     "no-console": false,
     "max-classes-per-file": [true, 1],
     "no-redundant-jsdoc": true,
     "no-eval": false,
-    "no-string-literal": false,
-    "no-namespace": false
+    "no-string-literal": true,
+    "no-namespace": true,
+    "no-angle-bracket-type-assertion": false
   }
 }

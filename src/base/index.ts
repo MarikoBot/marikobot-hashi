@@ -7,9 +7,9 @@ export * from './Context';
 export * from './DatabaseManager';
 export * from './DataMap';
 
-export * from './EventManager';
+export * from './DiscordEventManager';
 
-export * from './LanguageManager';
+export * from './Logger';
 
 // Shared exports
 export * from './shared';

@@ -57,14 +57,19 @@ export declare class SuperModel {
         [p: string]: any;
     };
     /**
+     * The default columns loading fonction of the model.
+     * @returns Nothing.
+     */
+    onLoaded(): void | object;
+    /**
      * @param name The name of the model.
      */
     constructor(name: string);
     /**
      * Generates a new object based on the property you chose to take into the current instance-value.
      * @param obj The object to dive in.
-     * @param propertyName The name of the property to take into the value.
+     * @param propertyName The name of the property to take into the value. If it is empty, the function won't touch the source.
      * @returns An object (the finale one or a child).
      */
-    static diveObject(obj: object, propertyName: string): any;
+    private static diveObject;
 }

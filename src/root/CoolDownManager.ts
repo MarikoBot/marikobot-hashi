@@ -1,6 +1,7 @@
 import { Collection, Snowflake } from 'discord.js';
-import { Validators, InstanceValidatorReturner } from '../decorators';
+import { InstanceValidator, InstanceValidatorReturner, Validators } from '../decorators';
 import { CoolDownsQueueElement } from './';
+import { Context } from '../base';
 
 /**
  * The main class who manages the active cool downs for commands.
@@ -11,6 +12,24 @@ export class CoolDownManager {
    */
   @((<InstanceValidatorReturner>Validators.ObjectValidator.IsInstanceOf)(Collection))
   private readonly queue: Collection<Snowflake, CoolDownsQueueElement[]> = new Collection();
+
+  /**
+   * The function that is called when the cool down manager authorization does not pass.
+   */
+  @(<InstanceValidator>Validators.FunctionValidator.Matches)
+  public callback: (context: Context, finishTimestamp: number) => Promise<void> = async (
+    context: Context,
+    finishTimestamp: number,
+  ): Promise<void> => {
+    await context.reply({
+      content: `<:MarikoCross:1191675946353299456> **Error** → cool down is running. Please wait **\`${(
+        (finishTimestamp - Date.now()) /
+        1000
+      ).toFixed(1)}\`**s.`,
+      ephemeral: true,
+    });
+    return void 0;
+  };
 
   /**
    * Register a cool down when a command is triggered.
@@ -26,6 +45,16 @@ export class CoolDownManager {
     currentCoolDowns.push([commandName, endTime, coolDown]);
 
     this.queue.set(userId, currentCoolDowns);
+  }
+
+  /**
+   * Set the callback function when the cool down manager is triggered on.
+   * @param callback The function to set.
+   * @returns The class instance.
+   */
+  public on(callback: (context: Context, finishTimestamp: number) => Promise<void>): this {
+    this.callback = callback;
+    return this;
   }
 
   /**

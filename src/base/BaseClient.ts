@@ -1,18 +1,18 @@
-import { Validators, InstanceValidatorReturner } from '../decorators/';
-import { HashiClient } from '../root';
+import { InstanceValidatorReturner, Validators } from '../decorators/';
+import { Client } from '../root';
 
 /**
  * Represents the base class for each class of the package base.
  */
 export class BaseClient {
-  @((<InstanceValidatorReturner>Validators.ObjectValidator.IsInstanceOf)(HashiClient))
-  public client: HashiClient;
+  @((<InstanceValidatorReturner>Validators.ObjectValidator.IsInstanceOf)(Client))
+  public client: Client;
 
   /**
    * Initialize the base class, and, if needed, the client instance.
    * @param client The client instance.
    */
-  constructor(client: HashiClient) {
-    if (client) this.client = client;
+  constructor(client: Client) {
+    this.client = client;
   }
 }

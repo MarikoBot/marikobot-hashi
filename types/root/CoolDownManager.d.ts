@@ -1,5 +1,6 @@
 import { Snowflake } from 'discord.js';
 import { CoolDownsQueueElement } from './';
+import { Context } from '../base';
 /**
  * The main class who manages the active cool downs for commands.
  */
@@ -9,6 +10,10 @@ export declare class CoolDownManager {
      */
     private readonly queue;
     /**
+     * The function that is called when the cool down manager authorization does not pass.
+     */
+    callback: (context: Context, finishTimestamp: number) => Promise<void>;
+    /**
      * Register a cool down when a command is triggered.
      * @param userId The user id of the command author.
      * @param commandName The name of the command.
@@ -16,6 +21,12 @@ export declare class CoolDownManager {
      * @returns Nothing.
      */
     registerCoolDown(userId: Snowflake, commandName: string, coolDown: number): void;
+    /**
+     * Set the callback function when the cool down manager is triggered on.
+     * @param callback The function to set.
+     * @returns The class instance.
+     */
+    on(callback: (context: Context, finishTimestamp: number) => Promise<void>): this;
     /**
      * Returns all the cool downs for a specified user.
      * @param userId The user id to search for.

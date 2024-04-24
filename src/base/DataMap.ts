@@ -1,26 +1,16 @@
-import { Query } from 'mongoose';
 import { BaseClient, DATAMAP_INTENTS, TypedDataMapStored } from './';
-import { Validators, InstanceValidator, InstanceValidatorReturner } from '../decorators';
-import { DataMapEntry, HashiClient, SuperModel } from '../root/';
+import { InstanceValidator, InstanceValidatorReturner, Validators } from '../decorators';
+import { DataMapEntry, Client, SuperModel } from '../root';
 
 /**
  * The main class. Represents a data map technology.
  */
-export class DataMap<
-  DataStructure extends TypedDataMapStored,
-  EntryClass extends new (...args: any[]) => DataMapEntry<DataStructure> = typeof DataMapEntry,
-> extends BaseClient {
+export class DataMap<DataStructure extends TypedDataMapStored> extends BaseClient {
   /**
    * The name of the data map.
    */
   @(<InstanceValidator>Validators.StringValidator.ValidId)
   public name: string = 'default';
-
-  /**
-   * The entry class to use while using the data.
-   */
-  @((<InstanceValidatorReturner>Validators.ObjectValidator.IsInstanceOf)(DataMapEntry))
-  public entryClass: EntryClass;
 
   /**
    * The primary key(s). Separate it with a '+' sign.
@@ -32,7 +22,7 @@ export class DataMap<
    * The default data for the data map.
    */
   @((<InstanceValidatorReturner>Validators.ObjectValidator.IsInstanceOf)(SuperModel))
-  public superModel: SuperModel;
+  public definition: SuperModel;
 
   /**
    * Intents for the database. Be careful! Those intents MUST BE set before the launch of the process.
@@ -44,26 +34,10 @@ export class DataMap<
    * The constructor of a data map.
    * @param client The client instance.
    * @param name The name of the collection.
-   * @param entryClass The entry class.
    */
-  constructor(
-    client: HashiClient,
-    name: string,
-    entryClass: EntryClass = <EntryClass>(<unknown>DataMapEntry<DataStructure>),
-  ) {
+  constructor(client: Client, name: string) {
     super(client);
     this.name = name;
-    this.entryClass = entryClass;
-  }
-
-  /**
-   * Display all the data included into the collection.
-   * @returns The retrieved data.
-   */
-  public async content(): Promise<Query<any, any>> {
-    const documents: this['superModel']['model'][] = await this.superModel.model.find({});
-    console.log(documents);
-    return documents;
   }
 
   /**
@@ -71,9 +45,9 @@ export class DataMap<
    * @param key The key to look for.
    * @returns The data if found.
    */
-  public async getRaw(key: string = this.superModel.defaultValues[this.primaryKey]): Promise<TypedDataMapStored> {
-    let value: TypedDataMapStored = null;
-    console.log(key, value);
+  public async getRaw(key: string = this.definition.defaultValues[this.primaryKey]): Promise<TypedDataMapStored> {
+    const value: TypedDataMapStored = null;
+    this.client.logger.debug(key, value);
     return value;
   }
 
@@ -84,8 +58,8 @@ export class DataMap<
   public async refreshCore(): Promise<void> {
     if (!this.intents.includes(DATAMAP_INTENTS.CORE)) return;
 
-    const currentData: TypedDataMapStored = await this.getRaw(this.superModel.defaultValues[this.primaryKey]);
-    console.log(currentData);
+    const currentData: TypedDataMapStored = await this.getRaw(this.definition.defaultValues[this.primaryKey]);
+    this.client.logger.debug(currentData);
   }
 
   /**
@@ -96,11 +70,11 @@ export class DataMap<
    * @returns Nothing.
    */
   public async update(
-    key: string = this.superModel.defaultValues[this.primaryKey],
+    key: string = this.definition.defaultValues[this.primaryKey],
     data: TypedDataMapStored,
     path?: string,
   ): Promise<void> {
-    console.log(key, data, path);
+    this.client.logger.debug(key, data, path);
   }
 
   /**
@@ -109,12 +83,12 @@ export class DataMap<
    * @returns The player data.
    */
   protected async get(
-    key: string = this.superModel.defaultValues[this.primaryKey],
+    key: string = this.definition.defaultValues[this.primaryKey],
   ): Promise<TypedDataMapStored | DataMapEntry<DataStructure>> {
     const data: TypedDataMapStored = await this.getRaw(key);
     if (!data) return data;
 
-    const structure: this['superModel']['defaultValues'] = this.superModel.defaultValues;
+    const structure: this['definition']['defaultValues'] = this.definition.defaultValues;
     let finalStructure: { [key: string]: any };
     let refreshIsRequired: boolean = false;
 
@@ -139,6 +113,6 @@ export class DataMap<
 
     finalStructure = compareObj(<object>structure, <object>data, {});
     if (refreshIsRequired) await this.update(key, finalStructure);
-    return new this.entryClass(this, <DataStructure>finalStructure);
+    return <DataStructure>finalStructure;
   }
 }

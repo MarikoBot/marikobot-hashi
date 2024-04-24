@@ -1,42 +1,13 @@
-/// <reference types="mongoose/types/aggregate" />
-/// <reference types="mongoose/types/callback" />
-/// <reference types="mongoose/types/collection" />
-/// <reference types="mongoose/types/connection" />
-/// <reference types="mongoose/types/cursor" />
-/// <reference types="mongoose/types/document" />
-/// <reference types="mongoose/types/error" />
-/// <reference types="mongoose/types/expressions" />
-/// <reference types="mongoose/types/helpers" />
-/// <reference types="mongoose/types/middlewares" />
-/// <reference types="mongoose/types/indexes" />
-/// <reference types="mongoose/types/models" />
-/// <reference types="mongoose/types/mongooseoptions" />
-/// <reference types="mongoose/types/pipelinestage" />
-/// <reference types="mongoose/types/populate" />
-/// <reference types="mongoose/types/query" />
-/// <reference types="mongoose/types/schemaoptions" />
-/// <reference types="mongoose/types/schematypes" />
-/// <reference types="mongoose/types/session" />
-/// <reference types="mongoose/types/types" />
-/// <reference types="mongoose/types/utility" />
-/// <reference types="mongoose/types/validation" />
-/// <reference types="mongoose/types/virtuals" />
-/// <reference types="mongoose/types/inferschematype" />
-import { Query } from 'mongoose';
-import { DATAMAP_INTENTS, BaseClient, TypedDataMapStored } from './';
-import { DataMapEntry, HashiClient, SuperModel } from '../root/';
+import { BaseClient, DATAMAP_INTENTS, TypedDataMapStored } from './';
+import { DataMapEntry, Client, SuperModel } from '../root';
 /**
  * The main class. Represents a data map technology.
  */
-export declare class DataMap<DataStructure extends TypedDataMapStored, EntryClass extends new (...args: any[]) => DataMapEntry<DataStructure> = typeof DataMapEntry> extends BaseClient {
+export declare class DataMap<DataStructure extends TypedDataMapStored> extends BaseClient {
     /**
      * The name of the data map.
      */
     name: string;
-    /**
-     * The entry class to use while using the data.
-     */
-    entryClass: EntryClass;
     /**
      * The primary key(s). Separate it with a '+' sign.
      */
@@ -44,7 +15,7 @@ export declare class DataMap<DataStructure extends TypedDataMapStored, EntryClas
     /**
      * The default data for the data map.
      */
-    superModel: SuperModel;
+    definition: SuperModel;
     /**
      * Intents for the database. Be careful! Those intents MUST BE set before the launch of the process.
      */
@@ -53,20 +24,8 @@ export declare class DataMap<DataStructure extends TypedDataMapStored, EntryClas
      * The constructor of a data map.
      * @param client The client instance.
      * @param name The name of the collection.
-     * @param entryClass The entry class.
      */
-    constructor(client: HashiClient, name: string, entryClass?: EntryClass);
-    /**
-     * Add an intent.
-     * @param intent The intent to add.
-     * @returns The data map.
-     */
-    addIntent(intent: DATAMAP_INTENTS): DataMap<DataStructure, EntryClass>;
-    /**
-     * Display all the data included into the collection.
-     * @returns The retrieved data.
-     */
-    content(): Promise<Query<any, any>>;
+    constructor(client: Client, name: string);
     /**
      * Get some data from the data map.
      * @param key The key to look for.

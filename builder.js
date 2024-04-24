@@ -1,11 +1,8 @@
-const fs = require('fs');
+const { rmSync, mkdirSync} = require('fs');
 
-// All the folders of the ./lib and ./types folders.
-const folders = fs.readdirSync('./lib');
-const types = fs.readdirSync('./types');
-
-fs.rmdirSync('./lib', { recursive: true });
-fs.mkdirSync('./lib');
-
-fs.rmdirSync('./types', { recursive: true });
-fs.mkdirSync('./types');
+/**
+ * @param dir {string} The directory name to recreate.
+ * @returns {*}
+ */
+const reset = (dir) => void [rmSync(`./${dir}`, { recursive: true }), mkdirSync(`./${dir}`)];
+['lib', 'types'].forEach(reset);
